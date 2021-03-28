@@ -93,7 +93,9 @@ interface Props {
 }
 
 export const Board: React.FC<Props> = ({ currentPlayer }) => {
-  const [board, setBoard] = useState<Cell[][] | [][]>(createBoard(BOARD_LENGTH));
+  const [board, setBoard] = useState<Cell[][] | [][]>(
+    createBoard(BOARD_LENGTH)
+  );
   //   const [boardHistory, setBoardHistory] = useState<Cell[][] | []>([]);
 
   const handleAction = (cell: Cell) => {
@@ -122,6 +124,7 @@ export const Board: React.FC<Props> = ({ currentPlayer }) => {
                   className="cell"
                   key={idx + idxz}
                 >
+                  {idx * 5 + 1 + idxz}
                   {!cell.structure ? drawElements(cell) : null}
                 </div>
               );
