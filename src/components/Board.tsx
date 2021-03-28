@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useAppDispatch } from "../common/hooks";
+import { setGameState } from "../store/gameStateSlice";
 import "./Board.css";
 
 enum Structure {
@@ -32,6 +34,12 @@ interface Coordinates {
   row: number;
   column: number;
 }
+enum GameStates {
+  SetStartPosition,
+  SelectPawn,
+  MovePawn,
+  BuildStructure
+}
 class Cell {
   id: number;
   structure: Structure;
@@ -52,32 +60,55 @@ class Cell {
 /**
  * Filling a board with a given length with predefined Cell objects
  */
-const createBoard = (length: number) => {
-  const board = Array(length)
+const createBoard = (boardLength: number) => {
+  const board = Array(boardLength)
     .fill(0)
-    .map((x) => Array(length).fill(0));
-  for (let i = 0; i < length; i++) {
-    for (let k = 0; k < length; k++) {
-      const cell = new Cell(length * i + k, { row: i, column: k });
+    .map((x) => Array(boardLength).fill(0));
+  for (let i = 0; i < boardLength; i++) {
+    for (let k = 0; k < boardLength; k++) {
+      const cell = new Cell(boardLength * i + k, { row: i, column: k });
       board[i][k] = cell;
     }
   }
   return board;
 };
+/**
+ * This will be used to create 5 x 5 grid board
+ */
+const BOARD_LENGTH = 5;
 
+const drawElements = (cell: Cell): JSX.Element => {
+  const elements: JSX.Element[] = [
+    <div className="first-level structure"></div>,
+    <div className="second-level structure"></div>,
+    <div className="third-level structure"></div>,
+    <div className="roof structure"></div>
+  ];
+  elements.splice(cell.structure, elements.length);
+  cell.pawn && elements.push(<div className="pawn"></div>);
+  return <>{elements}</>;
+};
 interface Props {
   currentPlayer: Player;
 }
 
 export const Board: React.FC<Props> = ({ currentPlayer }) => {
-  const [length] = useState(5);
-  const [board, setBoard] = useState<Cell[][] | [][]>(createBoard(length));
+  const [board, setBoard] = useState<Cell[][] | [][]>(createBoard(BOARD_LENGTH));
   //   const [boardHistory, setBoardHistory] = useState<Cell[][] | []>([]);
+
   const handleAction = (cell: Cell) => {
     const tempBoard = [...board];
     cell.setPawn({ player: currentPlayer });
     tempBoard[cell.coordinates.row][cell.coordinates.column] = cell;
+    changeState();
     setBoard(tempBoard);
+  };
+
+  // const gameState = useAppSelector((state) => state.gameState.value);
+  const dispatch = useAppDispatch();
+  //   dispatch({ type: "setGameState", payload: GameState.MovePawn });
+  const changeState = () => {
+    dispatch(setGameState(GameStates.MovePawn));
   };
   return (
     <div className="board">
@@ -91,7 +122,7 @@ export const Board: React.FC<Props> = ({ currentPlayer }) => {
                   className="cell"
                   key={idx + idxz}
                 >
-                  {cell.pawn && cell.pawn.player.name}
+                  {!cell.structure ? drawElements(cell) : null}
                 </div>
               );
             })}
