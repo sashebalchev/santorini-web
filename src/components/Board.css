@@ -1,12 +1,51 @@
 .board {
   outline: 0.1rem solid lightblue;
 }
-.row{
-    display: flex;
-    flex-direction: row;
+.row {
+  display: flex;
+  flex-direction: row;
 }
 .cell {
-  outline: 0.1rem solid lightblue;
-  height: calc(16vmin);
-  width: calc(16vmin);
+  outline: 0.1rem solid whitesmoke;
+  height: calc(16.5vmin);
+  width: calc(16.5vmin);
+  position: relative;
+}
+.structure {
+  width: 40%;
+  height: 40%;
+  margin: 6.9%;
+  background-color: whitesmoke;
+}
+.first-level {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.second-level {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+.third-level {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+.roof {
+  background-color: blue;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.pawn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: auto;
+  background-color: red;
+  width: 40%;
+  height: 40%;
 }
