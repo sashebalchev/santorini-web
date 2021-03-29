@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { actionDirections, possibleDirections } from "../board.ts/board";
 import { useAppDispatch } from "../common/hooks";
 import { setGameState } from "../store/gameStateSlice";
 import "./Board.css";
@@ -46,15 +47,23 @@ class Cell {
   pawn: Pawn | null;
   coordinates: Coordinates;
   selected: boolean;
+  highlighted: boolean;
   constructor(id: number, coordinates: Coordinates) {
     this.id = id;
     this.structure = 0;
     this.pawn = null;
     this.coordinates = coordinates;
     this.selected = false;
+    this.highlighted = false;
   }
   setPawn(pawn: Pawn | null) {
     this.pawn = pawn;
+  }
+  setSelected(selected: boolean) {
+    this.selected = selected;
+  }
+  setHighlighted(highlighted: boolean) {
+    this.highlighted = highlighted;
   }
 }
 /**
@@ -85,7 +94,7 @@ const drawElements = (cell: Cell): JSX.Element => {
     <div className="roof structure"></div>
   ];
   elements.splice(cell.structure, elements.length);
-  cell.pawn && elements.push(<div className="pawn"></div>);
+  cell.selected && elements.push(<div className="pawn"></div>);
   return <>{elements}</>;
 };
 interface Props {
@@ -100,8 +109,28 @@ export const Board: React.FC<Props> = ({ currentPlayer }) => {
 
   const handleAction = (cell: Cell) => {
     const tempBoard = [...board];
-    cell.setPawn({ player: currentPlayer });
-    tempBoard[cell.coordinates.row][cell.coordinates.column] = cell;
+    if (!cell.selected) {
+      const directions = possibleDirections(actionDirections(5), cell.id);
+      cell.setPawn({ player: currentPlayer });
+      cell.setSelected(true);
+      tempBoard[cell.coordinates.row][cell.coordinates.column] = cell;
+      tempBoard.forEach((row: Cell[]) => {
+        row.forEach((newCell: Cell) => {
+          for (let index = 0; index < directions.length; index++) {
+            if (newCell.id === cell.id + directions[index]) {
+              newCell.setHighlighted(true);
+            }
+          }
+        });
+      });
+    } else if (cell.selected) {
+      tempBoard.forEach((row: Cell[]) => {
+        row.forEach((newCell: Cell) => {
+          newCell.setSelected(false);
+          newCell.setHighlighted(false);
+        });
+      });
+    }
     changeState();
     setBoard(tempBoard);
   };
@@ -116,15 +145,14 @@ export const Board: React.FC<Props> = ({ currentPlayer }) => {
     <div className="board">
       {board.map((row: any, idx: number) => {
         return (
-          <div className="row" key={idx}>
+          <div className="row" key={idx + "row"}>
             {row.map((cell: any, idxz: number) => {
               return (
                 <div
                   onClick={() => handleAction(cell)}
-                  className="cell"
-                  key={idx + idxz}
+                  className={`cell ${cell.highlighted ? "highlighted" : ""}`}
+                  key={idx + idxz + "cell"}
                 >
-                  {idx * 5 + 1 + idxz}
                   {!cell.structure ? drawElements(cell) : null}
                 </div>
               );

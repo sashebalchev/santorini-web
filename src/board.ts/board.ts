@@ -1,3 +1,4 @@
+import { toBinary } from "./../common";
 /**
  * This file will contain the different
  * bitboards that represent the current
@@ -60,47 +61,118 @@
 //  |  | s | s | f  |    |
 //  +--+---+---+----+----+
 
-enum Edge {
+export enum Edge {
   TOP,
   RIGHT,
   BOTTOM,
   LEFT
 }
 
-//Creation of edges
+/**
+ * Creates bit board for an edge
+ */
 
-export const createEdge = (n: number, edge: Edge): string => {
+export const createEdge = (squareLength: number, edge: Edge): number => {
   let createdEdge: number = 0;
-  for (let index = 0; index < n; index++) {
+  for (let index = 0; index < squareLength; index++) {
     let mask: number;
     switch (edge) {
       case Edge.TOP:
-        mask = 1 << index;        
+        mask = 1 << index;
         createdEdge |= mask;
         break;
       case Edge.RIGHT:
-        mask = 1 << ((index + 1) * n - 1);
-        
-        
+        mask = 1 << ((index + 1) * squareLength - 1);
         createdEdge |= mask;
-        
-        
         break;
       case Edge.BOTTOM:
-        mask = 1 << (n * n - n + index);
-        console.log("MASK: ", mask.toString(2));
+        mask = 1 << (squareLength * (squareLength - 1) + index);
         createdEdge |= mask;
-        console.log("EDGE: ", createdEdge.toString(2));
         break;
       case Edge.LEFT:
-        mask = 1 << ( n * index);
+        mask = 1 << (squareLength * index);
         createdEdge |= mask;
         break;
       default:
         break;
     }
   }
-  return createdEdge.toString(2);
+  return createdEdge;
+};
+
+/**
+ * Returns the bitboard representation
+ * of the given cell index. [0~n]
+ * Zero-indexed
+ */
+const getMask = (index: number): number => {
+  return 1 << index;
+};
+
+/**
+ * Checks if a given cell is on a given edge.
+ * Returns true or false
+ */
+export const checkIfCellIsOnEdge = (
+  cellIndex: number,
+  edge: number
+): boolean => {
+  let cellBitPos = getMask(cellIndex);
+  return (cellBitPos & edge) === cellBitPos;
+};
+
+/**
+ * Returns a list of the possible directions
+ * for a given square length.
+ */
+export const actionDirections = (squareLength: number): number[] => {
+  return [
+    -squareLength - 1,
+    -squareLength,
+    -squareLength + 1,
+    -1,
+    0,
+    1,
+    squareLength - 1,
+    squareLength,
+    squareLength + 1
+  ];
+};
+
+/**
+ * Given the possible directions do an action
+ * relative to the given square length and also the
+ * selected cell with a given zero index it returns
+ * a list with only the allowed possible actions.
+ */
+
+export const possibleDirections = (
+  actionDirections: number[],
+  cellIndex: number
+): number[] => {
+  const possibleDirections: number[] = [];
+  let allDirectionsMask = 0b111101111;
+  if (checkIfCellIsOnEdge(cellIndex, createEdge(5, Edge.TOP))) {
+    allDirectionsMask &= 0b111101000;
+  }
+  if (checkIfCellIsOnEdge(cellIndex, createEdge(5, Edge.RIGHT))) {
+    allDirectionsMask &= 0b011001011;
+  }
+  if (checkIfCellIsOnEdge(cellIndex, createEdge(5, Edge.BOTTOM))) {
+    allDirectionsMask &= 0b000101111;
+  }
+  if (checkIfCellIsOnEdge(cellIndex, createEdge(5, Edge.LEFT))) {
+    allDirectionsMask &= 0b110100110;
+  }
+  const stringifiedReversedMask: string[] = toBinary(allDirectionsMask, 9)
+    .split("")
+    .reverse();
+  for (let index = 0; index < 9; index++) {
+    if (stringifiedReversedMask[index] === "1") {
+      possibleDirections.push(actionDirections[index]);
+    }
+  }
+  return possibleDirections;
 };
 
 // Bit board class
