@@ -3,7 +3,8 @@ import {
   checkIfCellIsOnEdge,
   createEdge,
   Edge,
-  possibleDirections
+  possibleDirections,
+  fenChecker,
 } from "./board";
 
 describe("Bit Board Test for n=5 square", () => {
@@ -50,5 +51,61 @@ describe("Bit Board Test for n=5 square", () => {
     expect(validDirections[3]).toEqual([-6, -5, -4, -1, 1, 4, 5, 6]);
     expect(validDirections[4]).toEqual([-6, -5, -1]);
     expect(validDirections[5]).toEqual([-6, -5, -4, -1, 1]);
+  });
+});
+
+describe("Fen notation test", () => {
+  it("checks if the fen checker will catch unsupported characters", () => {
+    const fen1 = "2ff1=1ssst/4t/3ff/1ssf1 p 4p13 5P20";
+    const fen2 = "2FF1/1ssst/4t/3ff/1ssf1 р 4p13 5P20";
+    const fen3 = "2ff1/1ssSt/4t/3ff/1ssf1 p 4p13 5P20";
+    const fen4 = "2ff1/1ssst/4t/3rR/1Ssf1 p 4p13 5P20";
+    const fen5 = "2ff1|1ssst/4t/3ff/1ssf1 p 4p13 5@20";
+    // Correct fen with all the supported characters
+    const correctFen = "2ff1/1srrt/4t/3ff/1ssf1 p 4p13 5P20";
+    expect(fenChecker(fen1)).toBe(false);
+    expect(fenChecker(fen2)).toBe(false);
+    expect(fenChecker(fen3)).toBe(false);
+    expect(fenChecker(fen4)).toBe(false);
+    expect(fenChecker(fen5)).toBe(false);
+    expect(fenChecker(correctFen)).toBe(true);
+  });
+  it("checks if splitting works correctly", () => {
+    const fen = "2ff1/1ssst/4t/3ff/1ssf1 p 4p13";
+    const fen2 = "2ff1/1ssst/4t/3ff/1ssf1 p 4p13 2P12";
+    expect(fenChecker(fen)).toBe(false);
+    expect(fenChecker(fen2)).toBe(true);
+  });
+  it("checks if structures test is correct", () => {
+    const fen = "2fff1/1ssst/4t/3ff/1ssf1 p 4p13 2P12";
+    const fen2 = "5f/11111f/4t/3ff/1ssf1 p 4p13 2P12";
+    expect(fenChecker(fen)).toBe(false);
+    expect(fenChecker(fen2)).toBe(false);
+  });
+  it("checks if nextPlayer test is correct", () => {
+    const fen = "2ff1/1srrt/4t/3ff/1ssf1 pp 4p13 5P20";
+    const fen2 = "2ff1/1srrt/4t/3ff/1ssf1 s 4p13 5P20";
+    const fen3 = "2ff1/1srrt/4t/3ff/1ssf1 P 4p13 5P20";
+    expect(fenChecker(fen)).toBe(false);
+    expect(fenChecker(fen2)).toBe(false);
+    expect(fenChecker(fen3)).toBe(true);
+  });
+  it("checks if player pawn position test is correct", () => {
+    const correctFen = "2ff1/1srrt/4t/3ff/1ssf1 p 4p13 5P20";
+    const fen2 = "2ff1/1srrt/4t/3ff/1ssf1 p 13p13 5P20";
+    const fen3 = "2ff1/1srrt/4t/3ff/1ssf1 p 4p13 5P26";
+    const fen4 = "2ff1/1srrt/4t/3ff/1ssf1 p 4p13 5P4";
+    const fen5 = "2ff1/1srrt/4t/3ff/1ssf1 p 4p13 5P";
+    expect(fenChecker(fen2)).toBe(false);
+    expect(fenChecker(fen3)).toBe(false);
+    expect(fenChecker(fen4)).toBe(false);
+    expect(fenChecker(fen5)).toBe(false);
+    expect(fenChecker(correctFen)).toBe(true);
+  });
+  it("checks if player pawn positions and next player correlate", () => {
+    const correctFen = "2ff1/1srrt/4t/3ff/1ssf1 p 0p0 5P20";
+    const fen = "2ff1/1srrt/4t/3ff/1ssf1 P 0p0 5P20";
+    expect(fenChecker(correctFen)).toBe(true);
+    expect(fenChecker(fen)).toBe(false);
   });
 });
