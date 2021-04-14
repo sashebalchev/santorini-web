@@ -1,6 +1,10 @@
 import {
   actionDirections,
-  checkIfCellIsOnEdge,
+
+
+
+
+  BitBoard, checkIfCellIsOnEdge,
   createEdge,
   Edge,
   possibleDirections
@@ -51,4 +55,15 @@ describe("Bit Board Test for n=5 square", () => {
     expect(validDirections[4]).toEqual([-6, -5, -1]);
     expect(validDirections[5]).toEqual([-6, -5, -4, -1, 1]);
   });
+  it("checks updating of the bitboard", () => {
+    const bitBoard = new BitBoard(LENGTH, LENGTH)
+    bitBoard.updateBoard(5)
+    bitBoard.updateBoard(8)
+    bitBoard.updateBoard(9)
+    expect(bitBoard.getValue()).toEqual("0000000000000001100100000")
+    bitBoard.updateBoard(9)
+    expect(bitBoard.getValue()).toEqual("0000000000000001100100000")
+    bitBoard.updateBoard(0)
+    expect(bitBoard.getValue()).toEqual("0000000000000001100100001")
+  })
 });
