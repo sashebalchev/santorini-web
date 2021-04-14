@@ -75,27 +75,22 @@ export enum Edge {
 export const createEdge = (squareLength: number, edge: Edge): number => {
   let createdEdge: number = 0;
   for (let index = 0; index < squareLength; index++) {
-    let mask: number;
+    let mask: number = 0;
     switch (edge) {
       case Edge.TOP:
         mask = 1 << index;
-        createdEdge |= mask;
         break;
       case Edge.RIGHT:
         mask = 1 << ((index + 1) * squareLength - 1);
-        createdEdge |= mask;
         break;
       case Edge.BOTTOM:
         mask = 1 << (squareLength * (squareLength - 1) + index);
-        createdEdge |= mask;
         break;
       case Edge.LEFT:
         mask = 1 << (squareLength * index);
-        createdEdge |= mask;
-        break;
-      default:
         break;
     }
+    createdEdge |= mask;
   }
   return createdEdge;
 };
@@ -105,7 +100,7 @@ export const createEdge = (squareLength: number, edge: Edge): number => {
  * of the given cell index. [0~n]
  * Zero-indexed
  */
-const getMask = (index: number): number => {
+const getIndexMask = (index: number): number => {
   return 1 << index;
 };
 
@@ -117,8 +112,8 @@ export const checkIfCellIsOnEdge = (
   cellIndex: number,
   edge: number
 ): boolean => {
-  let cellBitPos = getMask(cellIndex);
-  return (cellBitPos & edge) === cellBitPos;
+  let indexMask = getIndexMask(cellIndex);
+  return (indexMask & edge) === indexMask;
 };
 
 /**
@@ -126,6 +121,7 @@ export const checkIfCellIsOnEdge = (
  * for a given square length.
  */
 export const actionDirections = (squareLength: number): number[] => {
+  if (squareLength <= 0) return [];
   return [
     -squareLength - 1,
     -squareLength,
@@ -151,23 +147,23 @@ export const possibleDirections = (
   cellIndex: number
 ): number[] => {
   const possibleDirections: number[] = [];
-  let allDirectionsMask = 0b111101111;
+  let directionsMask = 0b111101111;
   if (checkIfCellIsOnEdge(cellIndex, createEdge(5, Edge.TOP))) {
-    allDirectionsMask &= 0b111101000;
+    directionsMask &= 0b111101000;
   }
   if (checkIfCellIsOnEdge(cellIndex, createEdge(5, Edge.RIGHT))) {
-    allDirectionsMask &= 0b011001011;
+    directionsMask &= 0b011001011;
   }
   if (checkIfCellIsOnEdge(cellIndex, createEdge(5, Edge.BOTTOM))) {
-    allDirectionsMask &= 0b000101111;
+    directionsMask &= 0b000101111;
   }
   if (checkIfCellIsOnEdge(cellIndex, createEdge(5, Edge.LEFT))) {
-    allDirectionsMask &= 0b110100110;
+    directionsMask &= 0b110100110;
   }
-  const stringifiedReversedMask: string[] = toBinary(allDirectionsMask, 9)
+  const stringifiedReversedMask: string[] = toBinary(directionsMask, 9)
     .split("")
     .reverse();
-  for (let index = 0; index < 9; index++) {
+  for (let index = 0; index < actionDirections.length; index++) {
     if (stringifiedReversedMask[index] === "1") {
       possibleDirections.push(actionDirections[index]);
     }
@@ -177,15 +173,31 @@ export const possibleDirections = (
 
 // Bit board class
 
-class BitBoard {
-  rows: number;
-  cols: number;
-  constructor() {
-    this.rows = 5;
-    this.cols = 5;
+export class BitBoard {
+  private _rows: number;
+  private _cols: number;
+  private _value: number;
+  constructor(rows: number, cols: number) {
+    this._rows = rows;
+    this._cols = cols;
+    this._value = 0b0;
   }
-  getMask = (index: number) => {
+  getValue = (): string => {
+    return toBinary(this._value, this._rows * this._cols);
+  };
+  private setValue = (value: number): void => {
+    this._value = value;
+  };
+  private getIndexMask = (index: number): number => {
     return 1 << index;
+  };
+  updateBoard = (index: number): void => {
+    if (index > this._rows * this._cols) return;
+    const newIndexMask = this.getIndexMask(index);
+    this.setValue(this._value | newIndexMask);
+  };
+  resetBoard = (): void => {
+    this.setValue(0b0);
   };
 }
 
@@ -199,7 +211,7 @@ class BitBoard {
 
 // Pawn first player bitboard
 
-const setFirstPlayerState = (place: number, bitboard?: number) => {};
+// const setFirstPlayerState = (place: number, bitboard?: number) => {};
 
 // Pawn player B bitboard
 
