@@ -61,11 +61,78 @@ import { toBinary } from "./../common";
 //  |  | s | s | f  |    |
 //  +--+---+---+----+----+
 
+// valid fen 2ff1/1ssst/4t/3ff/1ssf1 p 4p13 5P20
+export const fenChecker = (fen: string): boolean => {
+  if (fen.match(/[^fstrpP\d/ ]/g)) return false;
+  const [structures, nextPlayer, firstPlayer, secondPlayer] = fen.split(" ");
+  function checkStructures(structures: string): boolean {
+    if (structures.match(/[^fstr1-5/]/g)) return false;
+    const rows = structures.split("/");
+    if (rows.length < 5) return false;
+    for (const row of rows) {
+      const emptySpaces =
+        row.match(/\d/g)?.reduce((temp: number, current: string) => {
+          return temp + Number.parseInt(current);
+        }, 0) ?? 0;
+      const builtStructures = row.match(/[^\d]/g)?.length ?? 0;
+      if (emptySpaces + builtStructures !== 5) return false;
+    }
+    return true;
+  }
+  function checkNextPlayer(nextPlayer: string): boolean {
+    if (nextPlayer.length > 1 || nextPlayer.match(/[^pP]/g)) return false;
+    return true;
+  }
+  function checkPawns(firstPlayer: string, secondPlayer: string): boolean {
+    if (firstPlayer == null || secondPlayer == null) return false;
+    if (firstPlayer.match(/[^p\d]/g) || secondPlayer.match(/[^P\d]/g))
+      return false;
+    const [
+      a,
+      b,
+      firstPawnFirstPlayer = Number.parseInt(a),
+      secondPawnFirstPlayer = Number.parseInt(b),
+    ] = firstPlayer.split("p");
+    const [
+      c,
+      d,
+      firstPawnSecondPlayer = Number.parseInt(c),
+      secondPawnSecondPlayer = Number.parseInt(d),
+    ] = secondPlayer.split("P");
+
+    const allPositions = [
+      firstPawnFirstPlayer,
+      secondPawnFirstPlayer,
+      firstPawnSecondPlayer,
+      secondPawnSecondPlayer,
+    ];
+    const checkPositions: boolean = allPositions.some(
+      (position, index, allPositions) => {
+        if (position === 0) return false;
+        if (position > 25) return true;
+        if (allPositions.indexOf(position) !== index) return true;
+        return false;
+      }
+    );
+    if (checkPositions) return false;
+    return true;
+  }
+  // TODO: Check no pawns placed and next player logic.
+  if (
+    !checkStructures(structures) ||
+    !checkNextPlayer(nextPlayer) ||
+    !checkPawns(firstPlayer, secondPlayer)
+  )
+    return false;
+
+  return true;
+};
+
 export enum Edge {
   TOP,
   RIGHT,
   BOTTOM,
-  LEFT
+  LEFT,
 }
 
 /**
@@ -131,7 +198,7 @@ export const actionDirections = (squareLength: number): number[] => {
     1,
     squareLength - 1,
     squareLength,
-    squareLength + 1
+    squareLength + 1,
   ];
 };
 
@@ -215,7 +282,7 @@ export class BitBoard {
 
 // Pawn player B bitboard
 
-export { };
+export {};
 
 // class Board {
 //   constructor() {
